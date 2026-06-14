@@ -1,6 +1,7 @@
 import { ChevronRight, BookMarked, Headphones, Sparkles } from 'lucide-react';
 import { ThemedLink } from '@/lib/navigation';
 import { Medallion } from '@/components/ui/Medallion';
+import { Carousel } from '@/components/ui/Carousel';
 import { IconTile } from '@/components/ui/IconTile';
 import { ProgressPill } from '@/components/ui/ProgressPill';
 import { ContentCard } from '@/components/content/ContentCard';
@@ -31,25 +32,22 @@ export function HubPage() {
         </p>
       </header>
 
-      {/* Find your path — loan-type tracks (horizontal snap, like the host's tiles) */}
-      <section>
-        <SectionHeading title="Find your path" />
-        <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {TRACKS.map((t) => (
-            <ThemedLink
-              key={t.slug}
-              to={`/track/${t.slug}`}
-              className="group w-[10.5rem] shrink-0 snap-start rounded-2xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card-hover active:scale-[0.98]"
-            >
-              <span className="font-display text-lg font-semibold leading-snug">{t.label}</span>
-              <span className="mt-1.5 block text-xs leading-snug text-muted-foreground">{t.blurb}</span>
-              <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">
-                Explore <ChevronRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            </ThemedLink>
-          ))}
-        </div>
-      </section>
+      {/* Find your path — loan-type tracks (carousel with arrows + scroll indicator) */}
+      <Carousel title="Find your path">
+        {TRACKS.map((t) => (
+          <ThemedLink
+            key={t.slug}
+            to={`/track/${t.slug}`}
+            className="group w-[10.5rem] shrink-0 snap-start rounded-2xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card-hover active:scale-[0.98]"
+          >
+            <span className="font-display text-lg font-semibold leading-snug">{t.label}</span>
+            <span className="mt-1.5 block text-xs leading-snug text-muted-foreground">{t.blurb}</span>
+            <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">
+              Explore <ChevronRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </ThemedLink>
+        ))}
+      </Carousel>
 
       {/* Browse by stage — 5 journey categories with content-volume pills */}
       <section>
