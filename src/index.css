@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: theme('fontFamily.sans');
+    overscroll-behavior-y: none;
+    /* Atmosphere: a faint wash of the themed primary at the top, dissolving to bg.
+       Keeps the embed feeling tied to the host app's color without heavy fills. */
+    background-image: radial-gradient(
+      120% 60% at 50% -10%,
+      hsl(var(--primary) / 0.08),
+      transparent 60%
+    );
+    background-attachment: fixed;
+  }
+  h1, h2, h3, .font-display {
+    font-family: theme('fontFamily.display');
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* Editorial reading layout for guide bodies. */
+  .prose-content {
+    @apply text-[1.0625rem] leading-relaxed text-foreground/90;
+  }
+  .prose-content > p:first-of-type::first-letter {
+    @apply float-left mr-2 mt-1 font-display text-5xl font-semibold leading-[0.8] text-primary;
+  }
+}
+
+@layer utilities {
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* Staggered entrance: parent gets .stagger, children animate with increasing delay. */
+  .stagger > * {
+    @apply animate-rise;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0.02s; }
+  .stagger > *:nth-child(2) { animation-delay: 0.08s; }
+  .stagger > *:nth-child(3) { animation-delay: 0.14s; }
+  .stagger > *:nth-child(4) { animation-delay: 0.20s; }
+  .stagger > *:nth-child(5) { animation-delay: 0.26s; }
+  .stagger > *:nth-child(6) { animation-delay: 0.32s; }
+  @media (prefers-reduced-motion: reduce) {
+    .stagger > *,
+    .animate-rise {
+      animation: none !important;
+    }
+  }
+}
