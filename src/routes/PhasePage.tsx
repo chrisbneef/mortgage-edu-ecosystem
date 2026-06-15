@@ -1,40 +1,37 @@
-import { useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { ThemedLink } from '@/lib/navigation';
-import { useScope } from '@/lib/scope';
+import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { Medallion } from '@/components/ui/Medallion';
 import { ContentCard } from '@/components/content/ContentCard';
 import { byPhase } from '@/content/registry';
 import { PHASES, PHASE_SLUGS, type PhaseSlug } from '@/content/taxonomies';
+import { SCOPE_PARAM_KEY } from '@/lib/scope';
 import { NotFound } from './NotFound';
 
 /**
- * A single customer-lifecycle phase as a self-contained, embeddable mini-hub.
- * Reachable from the master hub (with a "← All topics" escape) or embedded standalone
- * via scope=phase:<slug> (this page is the root; no escape; Home tab points here).
+ * A single customer-lifecycle phase as a STANDALONE, embeddable page. It self-roots:
+ * if it isn't already scoped to itself, we add scope=phase:<slug> so this page is the
+ * root — no link back to the master hub, the Home tab points here, and everything
+ * navigated from here (lessons, utility tabs) stays inside the phase. The native app
+ * can simply open /#/phase/<slug> and get a fully contained experience.
  */
 export function PhasePage() {
   const { phase } = useParams();
-  const scope = useScope();
+  const [params] = useSearchParams();
 
   if (!phase || !(PHASE_SLUGS as string[]).includes(phase)) return <NotFound />;
   const slug = phase as PhaseSlug;
+
+  // Self-root: ensure the sticky scope param is set so the whole session stays contained.
+  if (params.get(SCOPE_PARAM_KEY) !== `phase:${slug}`) {
+    const next = new URLSearchParams(params);
+    next.set(SCOPE_PARAM_KEY, `phase:${slug}`);
+    return <Navigate to={`/phase/${slug}?${next.toString()}`} replace />;
+  }
+
   const meta = PHASES.find((p) => p.slug === slug)!;
   const lessons = byPhase(slug);
 
-  const isRoot = scope?.kind === 'phase' && scope.slug === slug;
-
   return (
     <div className="stagger space-y-7 pt-2">
-      {!isRoot && (
-        <ThemedLink
-          to="/"
-          className="inline-flex items-center gap-1 pt-3 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-        >
-          <ArrowLeft className="size-4" /> All topics
-        </ThemedLink>
-      )}
-
       <header className="flex flex-col items-center pt-2 text-center">
         <Medallion segments={Math.max(lessons.length, 1)} size={104} stroke={6}>
           <span className="font-display text-2xl font-semibold leading-none">{meta.order}</span>
