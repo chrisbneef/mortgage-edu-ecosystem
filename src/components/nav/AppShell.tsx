@@ -1,24 +1,37 @@
-import { Compass, Headphones, BookMarked, Search } from 'lucide-react';
+import { Compass, Headphones, BookMarked, Search, Home } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { ThemedLink } from '@/lib/navigation';
+import { useScope } from '@/lib/scope';
 import { cn } from '@/lib/utils';
 import type { ReactNode } from 'react';
 
-const TABS = [
-  {
-    to: '/',
-    label: 'Learn',
-    Icon: Compass,
-    match: (p: string) =>
-      p === '/' || p.startsWith('/journey') || p.startsWith('/track') || p.startsWith('/g/'),
-  },
-  { to: '/podcasts', label: 'Podcasts', Icon: Headphones, match: (p: string) => p.startsWith('/podcasts') },
-  { to: '/glossary', label: 'Glossary', Icon: BookMarked, match: (p: string) => p.startsWith('/glossary') },
-  { to: '/search', label: 'Search', Icon: Search, match: (p: string) => p.startsWith('/search') },
-];
-
 export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
+  const scope = useScope();
+
+  // When embedded as a scoped category, the Home tab roots in that category instead
+  // of the master hub; utility tabs (Podcasts/Glossary/Search) stay global.
+  const home = scope
+    ? {
+        to: scope.rootPath,
+        label: 'Home',
+        Icon: Home,
+        match: (p: string) => p === scope.rootPath || p.startsWith('/g/'),
+      }
+    : {
+        to: '/',
+        label: 'Learn',
+        Icon: Compass,
+        match: (p: string) =>
+          p === '/' || p.startsWith('/journey') || p.startsWith('/track') || p.startsWith('/g/'),
+      };
+
+  const tabs = [
+    home,
+    { to: '/podcasts', label: 'Podcasts', Icon: Headphones, match: (p: string) => p.startsWith('/podcasts') },
+    { to: '/glossary', label: 'Glossary', Icon: BookMarked, match: (p: string) => p.startsWith('/glossary') },
+    { to: '/search', label: 'Search', Icon: Search, match: (p: string) => p.startsWith('/search') },
+  ];
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
@@ -29,11 +42,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label="Primary"
       >
         <div className="mx-auto grid max-w-2xl grid-cols-4 px-2 pt-1.5">
-          {TABS.map(({ to, label, Icon, match }) => {
+          {tabs.map(({ to, label, Icon, match }) => {
             const active = match(pathname);
             return (
               <ThemedLink
-                key={to}
+                key={label}
                 to={to}
                 aria-current={active ? 'page' : undefined}
                 className="flex flex-col items-center gap-1 py-1.5"

@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, type ComponentType } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, ArrowUpRight, Clock, BookOpen, Headphones } from 'lucide-react';
 import { ThemedLink } from '@/lib/navigation';
+import { useScope } from '@/lib/scope';
 import { MdxContent } from '@/components/mdx';
 import { AudioControls } from '@/components/audio/AudioPlayer';
 import { getById, neighbours } from '@/content/registry';
@@ -20,8 +21,10 @@ function parseFrom(raw: string | null): { kind: 'track' | 'journey'; slug: strin
 export function ContentDetailPage() {
   const { id } = useParams();
   const [params] = useSearchParams();
+  const scope = useScope();
   const entry = id ? getById(id) : undefined;
-  const from = parseFrom(params.get('from'));
+  // Fall back to the embedded scope so back/next stay in-category even on a direct deep-link.
+  const from = parseFrom(params.get('from')) ?? (scope ? { kind: scope.kind, slug: scope.slug } : undefined);
 
   useEffect(() => {
     if (entry) trackEvent('content_view', { id: entry.id, type: entry.contentType });

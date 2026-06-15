@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import { ThemedLink } from '@/lib/navigation';
+import { useScope } from '@/lib/scope';
 import { ContentCard } from './ContentCard';
 import type { ContentEntry } from '@/content/schema';
 
@@ -17,17 +18,21 @@ export function CollectionList({
   entries: ContentEntry[];
   from: string;
 }) {
+  const scope = useScope();
   return (
     <div className="stagger space-y-6 pt-2">
       <div>
-        <ThemedLink
-          to="/"
-          className="inline-flex items-center gap-1 pt-3 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-        >
-          <ArrowLeft className="size-4" /> All topics
-        </ThemedLink>
+        {/* No escape to the master hub when embedded as a scoped experience. */}
+        {!scope && (
+          <ThemedLink
+            to="/"
+            className="inline-flex items-center gap-1 pt-3 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+          >
+            <ArrowLeft className="size-4" /> All topics
+          </ThemedLink>
+        )}
 
-        <header className="mt-4">
+        <header className={scope ? 'pt-3' : 'mt-4'}>
           {eyebrow && (
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">{eyebrow}</p>
           )}
