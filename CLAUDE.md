@@ -38,9 +38,17 @@ locked contract** the native app codes against (`THEME_PARAM_KEYS` in `engine.ts
 
 ### 2. Multi-taxonomy content (`src/content/`)
 Guides + podcasts authored as MDX with frontmatter validated by Zod (`schema.ts`). Content is
-organized by BOTH `journeyCategory` (one of 5) AND `tracks[]` (many loan types) — see
-`taxonomies.ts`. `registry.ts` builds a typed index: frontmatter eager (tiny, via the `?meta`
-plugin), MDX bodies lazy/code-split.
+organized by THREE taxonomies (see `taxonomies.ts`): `journeyCategory` (one of 5 topical buckets),
+`tracks[]` (many loan types), and `phases[]` (customer-lifecycle: dream / pre-approved /
+under-contract / post-closing — the funnel the app embeds by). If `phases` is omitted the registry
+derives it from `journeyCategory` (`JOURNEY_TO_PHASES`). `registry.ts` builds a typed index:
+frontmatter eager (tiny, via the `?meta` plugin), MDX bodies lazy/code-split.
+
+**Embeddable scoped views.** Phase, category, and track pages are each embeddable standalone via a
+sticky `scope` param (`scope=phase:dream`, `scope=preparation`, `scope=track:va`) — see `lib/scope.ts`.
+When scoped, `/` redirects to that root, the Home tab points there, and master-hub escapes are hidden,
+so back/home stays in-scope. Content planning lives in `content-guidelines/` (voice, compliance,
+search-intent map).
 
 - **Add a guide/podcast:** drop an `.mdx` file under `src/content/items/<category>/` with valid
   frontmatter (copy an existing one). `id` must be unique kebab-case and is the permanent

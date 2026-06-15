@@ -5,7 +5,7 @@ import { Carousel } from '@/components/ui/Carousel';
 import { IconTile } from '@/components/ui/IconTile';
 import { ProgressPill } from '@/components/ui/ProgressPill';
 import { ContentCard } from '@/components/content/ContentCard';
-import { JOURNEY_CATEGORIES, TRACKS } from '@/content/taxonomies';
+import { JOURNEY_CATEGORIES, PHASES, TRACKS } from '@/content/taxonomies';
 import { featured, byJourney, published } from '@/content/registry';
 
 export function HubPage() {
@@ -31,6 +31,36 @@ export function HubPage() {
           Plain-English guides and podcasts — from first thoughts to keys in hand.
         </p>
       </header>
+
+      {/* Where are you? — customer-lifecycle phases (the primary embeddable views) */}
+      <section>
+        <SectionHeading title="Where are you?" />
+        <div className="grid gap-2.5">
+          {PHASES.map((p) => (
+            <ThemedLink
+              key={p.slug}
+              to={`/phase/${p.slug}`}
+              className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card-hover active:scale-[0.99]"
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 font-display text-base font-semibold text-primary">
+                {p.order}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-2">
+                  <span className="font-display font-semibold">{p.label}</span>
+                  <span className="text-[0.7rem] uppercase tracking-wide text-muted-foreground">
+                    {p.tagline}
+                  </span>
+                </span>
+                <span className="mt-0.5 line-clamp-1 block text-sm text-muted-foreground">
+                  {p.description}
+                </span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </ThemedLink>
+          ))}
+        </div>
+      </section>
 
       {/* Find your path — loan-type tracks (carousel with arrows + scroll indicator) */}
       <Carousel title="Find your path">

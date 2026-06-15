@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppShell } from '@/components/nav/AppShell';
 import { useScope } from '@/lib/scope';
 import { HubPage } from './HubPage';
+import { PhasePage } from './PhasePage';
 import { JourneyPage } from './JourneyPage';
 import { TrackPage } from './TrackPage';
 import { PodcastsPage } from './PodcastsPage';
@@ -29,6 +30,7 @@ export function AppRoutes() {
     <AppShell>
       <Routes>
         <Route path="/" element={<MasterHub />} />
+        <Route path="/phase/:phase" element={<PhasePage />} />
         <Route path="/journey/:category" element={<JourneyPage />} />
         <Route path="/track/:track" element={<TrackPage />} />
         <Route path="/podcasts" element={<PodcastsPage />} />

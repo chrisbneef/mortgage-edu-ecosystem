@@ -23,7 +23,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         label: 'Learn',
         Icon: Compass,
         match: (p: string) =>
-          p === '/' || p.startsWith('/journey') || p.startsWith('/track') || p.startsWith('/g/'),
+          p === '/' ||
+          p.startsWith('/phase') ||
+          p.startsWith('/journey') ||
+          p.startsWith('/track') ||
+          p.startsWith('/g/'),
       };
 
   const tabs = [

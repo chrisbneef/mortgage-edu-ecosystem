@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { JOURNEY_SLUGS, TRACK_SLUGS, CONTENT_TYPES } from './taxonomies';
+import { JOURNEY_SLUGS, TRACK_SLUGS, PHASE_SLUGS, CONTENT_TYPES } from './taxonomies';
 
 /**
  * The frontmatter contract for every guide/podcast. Validated at load time so a
@@ -15,6 +15,9 @@ export const ContentFrontmatterSchema = z.object({
   journeyCategory: z.enum(JOURNEY_SLUGS as [string, ...string[]]),
   journeyOrder: z.number().default(100),
   tracks: z.array(z.enum(TRACK_SLUGS as [string, ...string[]])).default([]),
+  // Customer-lifecycle phases this lesson applies to. If omitted, the registry
+  // derives sensible defaults from the journeyCategory.
+  phases: z.array(z.enum(PHASE_SLUGS as [string, ...string[]])).default([]),
 
   tags: z.array(z.string()).default([]),
   glossaryTerms: z.array(z.string()).default([]),

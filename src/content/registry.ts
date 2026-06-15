@@ -1,6 +1,13 @@
 import type { ComponentType } from 'react';
 import { ContentFrontmatterSchema, type ContentEntry } from './schema';
-import { JOURNEY_SLUGS, TRACK_SLUGS, type JourneyCategorySlug, type TrackSlug } from './taxonomies';
+import {
+  JOURNEY_SLUGS,
+  TRACK_SLUGS,
+  PHASE_SLUGS,
+  type JourneyCategorySlug,
+  type TrackSlug,
+  type PhaseSlug,
+} from './taxonomies';
 
 /**
  * Builds a typed in-memory index from MDX frontmatter.
@@ -69,20 +76,42 @@ export function byType(contentType: 'guide' | 'podcast'): ContentEntry[] {
   return published().filter((e) => e.contentType === contentType);
 }
 
+/** Fallback mapping when a lesson has no explicit `phases` — derived from its category. */
+const JOURNEY_TO_PHASES: Record<string, PhaseSlug[]> = {
+  preparation: ['dream', 'pre-approved'],
+  'mortgage-process': ['pre-approved'],
+  'property-search': ['dream', 'pre-approved'],
+  'closing-beyond': ['under-contract', 'post-closing'],
+  'tools-resources': ['dream', 'pre-approved', 'under-contract', 'post-closing'],
+};
+
+/** The lifecycle phases a lesson belongs to — explicit if tagged, else derived from category. */
+export function effectivePhases(e: ContentEntry): PhaseSlug[] {
+  return e.phases.length ? (e.phases as PhaseSlug[]) : JOURNEY_TO_PHASES[e.journeyCategory] ?? [];
+}
+
+export function byPhase(phase: PhaseSlug): ContentEntry[] {
+  return published()
+    .filter((e) => effectivePhases(e).includes(phase))
+    .sort((a, b) => a.journeyOrder - b.journeyOrder);
+}
+
 export function featured(): ContentEntry[] {
   return published().filter((e) => e.featured);
 }
 
-/** Ordered neighbours within a browse context (track or journey), for next/prev links. */
+/** Ordered neighbours within a browse context (phase, track, or journey), for next/prev. */
 export function neighbours(
   entry: ContentEntry,
-  from?: { kind: 'track' | 'journey'; slug: string },
+  from?: { kind: 'track' | 'journey' | 'phase'; slug: string },
 ): { prev?: ContentEntry; next?: ContentEntry } {
   let list: ContentEntry[];
   if (from?.kind === 'track' && (TRACK_SLUGS as string[]).includes(from.slug)) {
     list = byTrack(from.slug as TrackSlug);
   } else if (from?.kind === 'journey' && (JOURNEY_SLUGS as string[]).includes(from.slug)) {
     list = byJourney(from.slug as JourneyCategorySlug);
+  } else if (from?.kind === 'phase' && (PHASE_SLUGS as string[]).includes(from.slug)) {
+    list = byPhase(from.slug as PhaseSlug);
   } else {
     list = byJourney(entry.journeyCategory as JourneyCategorySlug);
   }

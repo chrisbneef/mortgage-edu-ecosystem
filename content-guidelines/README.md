@@ -11,6 +11,7 @@ content lives as `.mdx` files under [`src/content/items/`](../src/content/items/
 |------|---------|
 | [`writing-voice.md`](./writing-voice.md) | Tone, style, reading level, and formatting conventions for all guides & podcasts. |
 | [`compliance.md`](./compliance.md) | Required disclosures, rate/APR language rules, prohibited claims, and the review workflow. |
+| [`search-intent.md`](./search-intent.md) | What borrowers actually search at each lifecycle phase → the content to build, ranked. Maps to the `phases` + `journeyCategory` frontmatter. |
 
 ## How these connect to the app
 
