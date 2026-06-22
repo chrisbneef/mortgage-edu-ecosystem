@@ -6,17 +6,18 @@ import { useScope } from '@/lib/scope';
 import { MdxContent } from '@/components/mdx';
 import { AudioControls } from '@/components/audio/AudioPlayer';
 import { getById, neighbours } from '@/content/registry';
-import { journeyLabel, trackLabel, phaseLabel } from '@/content/taxonomies';
+import { journeyLabel, trackLabel, phaseLabel, nicheLabel } from '@/content/taxonomies';
 import { formatMinutes } from '@/lib/utils';
 import { trackEvent } from '@/native/bridge';
 import { NotFound } from './NotFound';
 
-type FromKind = 'track' | 'journey' | 'phase';
+type FromKind = 'track' | 'journey' | 'phase' | 'niche';
 
 function parseFrom(raw: string | null): { kind: FromKind; slug: string } | undefined {
   if (!raw) return undefined;
   const [kind, slug] = raw.split(':');
-  if ((kind === 'track' || kind === 'journey' || kind === 'phase') && slug) return { kind, slug };
+  if ((kind === 'track' || kind === 'journey' || kind === 'phase' || kind === 'niche') && slug)
+    return { kind, slug };
   return undefined;
 }
 
@@ -43,14 +44,23 @@ export function ContentDetailPage() {
   const TypeIcon = isPodcast ? Headphones : BookOpen;
   const minutes = isPodcast ? entry.estListenMin : entry.estReadMin;
   const fromQs = from ? `?from=${from.kind}:${from.slug}` : '';
-  const fromBase = from?.kind === 'track' ? 'track' : from?.kind === 'phase' ? 'phase' : 'journey';
+  const fromBase =
+    from?.kind === 'track'
+      ? 'track'
+      : from?.kind === 'phase'
+        ? 'phase'
+        : from?.kind === 'niche'
+          ? 'niche'
+          : 'journey';
   const backTo = from ? `/${fromBase}/${from.slug}` : '/';
   const backLabel = from
     ? from.kind === 'track'
       ? trackLabel(from.slug)
       : from.kind === 'phase'
         ? phaseLabel(from.slug)
-        : journeyLabel(from.slug)
+        : from.kind === 'niche'
+          ? nicheLabel(from.slug)
+          : journeyLabel(from.slug)
     : 'Education';
 
   return (

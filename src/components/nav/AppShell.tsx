@@ -25,6 +25,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         match: (p: string) =>
           p === '/' ||
           p.startsWith('/phase') ||
+          p.startsWith('/niche') ||
           p.startsWith('/journey') ||
           p.startsWith('/track') ||
           p.startsWith('/g/'),

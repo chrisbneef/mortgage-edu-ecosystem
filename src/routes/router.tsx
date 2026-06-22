@@ -3,6 +3,7 @@ import { AppShell } from '@/components/nav/AppShell';
 import { useScope } from '@/lib/scope';
 import { HubPage } from './HubPage';
 import { PhasePage } from './PhasePage';
+import { NichePage } from './NichePage';
 import { JourneyPage } from './JourneyPage';
 import { TrackPage } from './TrackPage';
 import { PodcastsPage } from './PodcastsPage';
@@ -31,6 +32,7 @@ export function AppRoutes() {
       <Routes>
         <Route path="/" element={<MasterHub />} />
         <Route path="/phase/:phase" element={<PhasePage />} />
+        <Route path="/niche/:niche" element={<NichePage />} />
         <Route path="/journey/:category" element={<JourneyPage />} />
         <Route path="/track/:track" element={<TrackPage />} />
         <Route path="/podcasts" element={<PodcastsPage />} />

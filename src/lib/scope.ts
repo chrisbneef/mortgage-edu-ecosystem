@@ -4,12 +4,15 @@ import {
   JOURNEY_SLUGS,
   TRACK_SLUGS,
   PHASE_SLUGS,
+  NICHE_SLUGS,
   journeyLabel,
   trackLabel,
   phaseLabel,
+  nicheLabel,
   type JourneyCategorySlug,
   type TrackSlug,
   type PhaseSlug,
+  type NicheSlug,
 } from '@/content/taxonomies';
 
 /**
@@ -26,7 +29,7 @@ import {
  * whole session stays scoped. Absent/invalid → unscoped (full master experience).
  */
 export interface Scope {
-  kind: 'journey' | 'track' | 'phase';
+  kind: 'journey' | 'track' | 'phase' | 'niche';
   slug: string;
   rootPath: string;
   label: string;
@@ -42,6 +45,14 @@ export function parseScope(params: URLSearchParams): Scope | null {
     const slug = raw.slice('phase:'.length);
     if ((PHASE_SLUGS as string[]).includes(slug)) {
       return { kind: 'phase', slug, rootPath: `/phase/${slug}`, label: phaseLabel(slug as PhaseSlug) };
+    }
+    return null;
+  }
+
+  if (raw.startsWith('niche:')) {
+    const slug = raw.slice('niche:'.length);
+    if ((NICHE_SLUGS as string[]).includes(slug)) {
+      return { kind: 'niche', slug, rootPath: `/niche/${slug}`, label: nicheLabel(slug as NicheSlug) };
     }
     return null;
   }

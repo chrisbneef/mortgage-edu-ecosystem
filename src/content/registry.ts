@@ -4,9 +4,11 @@ import {
   JOURNEY_SLUGS,
   TRACK_SLUGS,
   PHASE_SLUGS,
+  NICHE_SLUGS,
   type JourneyCategorySlug,
   type TrackSlug,
   type PhaseSlug,
+  type NicheSlug,
 } from './taxonomies';
 
 /**
@@ -96,14 +98,20 @@ export function byPhase(phase: PhaseSlug): ContentEntry[] {
     .sort((a, b) => a.journeyOrder - b.journeyOrder);
 }
 
+export function byNiche(niche: NicheSlug): ContentEntry[] {
+  return published()
+    .filter((e) => e.niches.includes(niche))
+    .sort((a, b) => a.journeyOrder - b.journeyOrder);
+}
+
 export function featured(): ContentEntry[] {
   return published().filter((e) => e.featured);
 }
 
-/** Ordered neighbours within a browse context (phase, track, or journey), for next/prev. */
+/** Ordered neighbours within a browse context (niche, phase, track, or journey). */
 export function neighbours(
   entry: ContentEntry,
-  from?: { kind: 'track' | 'journey' | 'phase'; slug: string },
+  from?: { kind: 'track' | 'journey' | 'phase' | 'niche'; slug: string },
 ): { prev?: ContentEntry; next?: ContentEntry } {
   let list: ContentEntry[];
   if (from?.kind === 'track' && (TRACK_SLUGS as string[]).includes(from.slug)) {
@@ -112,6 +120,8 @@ export function neighbours(
     list = byJourney(from.slug as JourneyCategorySlug);
   } else if (from?.kind === 'phase' && (PHASE_SLUGS as string[]).includes(from.slug)) {
     list = byPhase(from.slug as PhaseSlug);
+  } else if (from?.kind === 'niche' && (NICHE_SLUGS as string[]).includes(from.slug)) {
+    list = byNiche(from.slug as NicheSlug);
   } else {
     list = byJourney(entry.journeyCategory as JourneyCategorySlug);
   }
