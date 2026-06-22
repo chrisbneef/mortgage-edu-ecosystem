@@ -21,8 +21,8 @@ The native app opens the WebView with two params that drive the whole theme:
 `?primary=2563eb&theme=light` where `theme` is `light | hybrid | dark`. **These 2 param keys are a
 locked contract** the native app codes against (`THEME_PARAM_KEYS` in `engine.ts`). Everything else
 (accent, background, text, the full token set) is derived from the primary color and the theme;
-there is no separate secondary color. `light` = white bg, `hybrid` = soft brand-tinted light bg,
-`dark` = near-black brand-tinted bg.
+there is no separate secondary color. `light` = white bg, `hybrid` = neutral gray bg with white cards
+(Pam supplies the dark header/footer), `dark` = near-black brand-tinted bg.
 
 - `engine.ts` is the **single source of truth** — pure, dependency-free parse/validate/derive/apply.
   Used by BOTH the React `ThemeProvider` and the pre-paint inline bootstrap.

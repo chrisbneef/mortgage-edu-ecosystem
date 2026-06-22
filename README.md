@@ -9,8 +9,8 @@ https://<deployed-url>/?primary=4a9d4f&theme=light    # green host, light theme
 https://<deployed-url>/?primary=1e2d4f&theme=dark     # navy host, dark theme
 ```
 
-Theme options: `light` (white background), `hybrid` (soft brand-tinted light), `dark` (near-black
-brand-tinted). Everything else is derived from the primary color; there is no separate accent.
+Theme options: `light` (white background), `hybrid` (neutral gray background with white cards),
+`dark` (near-black brand-tinted). Everything else is derived from the primary color; no separate accent.
 
 ## Stack
 

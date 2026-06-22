@@ -218,13 +218,15 @@ interface Expanded {
   accent: Rgb;
   bg: Rgb;
   text: Rgb;
+  card: Rgb;
   dark: boolean;
 }
 
 /**
  * Turn the two inputs into the working palette colors.
- *  - light:  white background, dark text.
- *  - hybrid: a soft off-white tinted with the brand primary, dark text.
+ *  - light:  white background, white cards, dark text.
+ *  - hybrid: a neutral gray background with white cards, dark text. (In Pam the native
+ *            app supplies a dark header/footer; the embedded content sits on gray.)
  *  - dark:   a near-black background faintly tinted with the brand primary, light text.
  * The primary is nudged so it always reads as a button on the chosen background, and the
  * accent is just the primary (there is no separate secondary color).
@@ -248,24 +250,25 @@ function expand(inputs: ThemeInputs): Expanded {
 
   let bg: Rgb;
   let text: Rgb;
+  let card: Rgb;
   if (theme === 'hybrid') {
-    const t = rgbToHsl(raw);
-    t.s = clamp(t.s, 16, 40);
-    t.l = 97;
-    bg = hslToRgb(t);
-    text = { r: 17, g: 24, b: 39 };
+    bg = { r: 241, g: 243, b: 245 }; // neutral light gray
+    card = { r: 255, g: 255, b: 255 }; // white cards stand out on the gray
+    text = { r: 15, g: 23, b: 42 };
   } else if (theme === 'dark') {
     const t = rgbToHsl(raw);
     t.s = clamp(t.s, 8, 24);
     t.l = 7;
     bg = hslToRgb(t);
+    card = mix(bg, WHITE, 0.06); // slightly lifted surface
     text = { r: 244, g: 246, b: 250 };
   } else {
     bg = { r: 255, g: 255, b: 255 };
+    card = { r: 255, g: 255, b: 255 };
     text = { r: 15, g: 23, b: 42 };
   }
 
-  return { primary, accent: primary, bg, text, dark };
+  return { primary, accent: primary, bg, text, card, dark };
 }
 
 /** The background color as hex (for the native chrome / meta theme-color). */
@@ -279,7 +282,7 @@ export function backgroundHex(inputs: ThemeInputs): string {
 
 /** Derive the full shadcn token palette from the primary color and theme. */
 export function buildPalette(inputs: ThemeInputs): Palette {
-  const { primary, accent, bg, text, dark } = expand(inputs);
+  const { primary, accent, bg, text, card, dark } = expand(inputs);
 
   const toward = (c: Rgb, target: Rgb, t: number) => hslString(rgbToHsl(mix(c, target, t)));
   const hover = (c: Rgb) => {
@@ -293,9 +296,9 @@ export function buildPalette(inputs: ThemeInputs): Palette {
   return {
     background: hslString(rgbToHsl(bg)),
     foreground: hslString(rgbToHsl(text)),
-    card: hslString(rgbToHsl(mix(bg, text, dark ? 0.05 : 0.0))),
+    card: hslString(rgbToHsl(card)),
     'card-foreground': hslString(rgbToHsl(text)),
-    popover: hslString(rgbToHsl(bg)),
+    popover: hslString(rgbToHsl(card)),
     'popover-foreground': hslString(rgbToHsl(text)),
     primary: hslString(rgbToHsl(primary)),
     'primary-foreground': hslString(rgbToHsl(readableForeground(primary))),
