@@ -3,11 +3,12 @@ import {
   parseHex,
   parseThemeInputs,
   buildPalette,
+  backgroundHex,
   DEFAULT_THEME_INPUTS,
   combinedSearch,
 } from './engine';
 
-describe('parseHex — validate, reject-don\'t-strip', () => {
+describe("parseHex — validate, reject-don't-strip", () => {
   it('accepts 3 and 6 digit hex, normalizes to #rrggbb lowercase', () => {
     expect(parseHex('#FFF')).toBe('#ffffff');
     expect(parseHex('2563EB')).toBe('#2563eb');
@@ -33,45 +34,57 @@ describe('parseHex — validate, reject-don\'t-strip', () => {
   });
 });
 
-describe('parseThemeInputs — per-field fallback', () => {
+describe('parseThemeInputs — primary + theme only', () => {
   it('uses defaults when params absent', () => {
     expect(parseThemeInputs(new URLSearchParams())).toEqual(DEFAULT_THEME_INPUTS);
   });
 
-  it('one bad param does not corrupt the others', () => {
-    const inputs = parseThemeInputs(
-      new URLSearchParams('primary=2563eb&accent=NOTHEX&bg=000000'),
-    );
-    expect(inputs.primary).toBe('#2563eb');
-    expect(inputs.accent).toBe(DEFAULT_THEME_INPUTS.accent); // fell back
-    expect(inputs.bg).toBe('#000000');
+  it('reads primary and theme; falls back per field on bad input', () => {
+    const inputs = parseThemeInputs(new URLSearchParams('primary=10b981&theme=dark'));
+    expect(inputs).toEqual({ primary: '#10b981', theme: 'dark' });
+
+    const bad = parseThemeInputs(new URLSearchParams('primary=NOTHEX&theme=neon'));
+    expect(bad).toEqual(DEFAULT_THEME_INPUTS); // both invalid -> defaults
   });
 
-  it('infers dark mode from a dark background', () => {
-    const inputs = parseThemeInputs(new URLSearchParams('bg=0a0a0a'));
-    expect(inputs.mode).toBe('dark');
+  it('accepts the hybrid theme', () => {
+    expect(parseThemeInputs(new URLSearchParams('theme=hybrid')).theme).toBe('hybrid');
+  });
+
+  it('ignores legacy accent/bg/text params', () => {
+    const inputs = parseThemeInputs(new URLSearchParams('primary=2563eb&accent=f00&bg=000&text=fff'));
+    expect(inputs).toEqual({ primary: '#2563eb', theme: 'light' });
   });
 });
 
 describe('buildPalette — only emits safe numeric "H S% L%" strings', () => {
-  it('every token is a clean H S% L% triple (no injection possible)', () => {
-    const palette = buildPalette({ ...DEFAULT_THEME_INPUTS });
-    for (const value of Object.values(palette)) {
-      expect(value).toMatch(/^\d{1,3} \d{1,3}% \d{1,3}%$/);
+  it('every token is a clean H S% L% triple for each theme', () => {
+    for (const theme of ['light', 'hybrid', 'dark'] as const) {
+      const palette = buildPalette({ primary: '#2563eb', theme });
+      for (const value of Object.values(palette)) {
+        expect(value).toMatch(/^\d{1,3} \d{1,3}% \d{1,3}%$/);
+      }
     }
   });
 
-  it('derives a foreground that clears WCAG AA on the primary button', () => {
-    // A mid-tone primary that neither pure black nor white may pass naively.
-    const palette = buildPalette({ ...DEFAULT_THEME_INPUTS, primary: '#2563eb' });
-    expect(palette['primary-foreground']).toMatch(/^\d{1,3} \d{1,3}% \d{1,3}%$/);
+  it('dark and light themes produce different backgrounds', () => {
+    const light = buildPalette({ primary: '#2563eb', theme: 'light' }).background;
+    const dark = buildPalette({ primary: '#2563eb', theme: 'dark' }).background;
+    expect(light).not.toBe(dark);
+  });
+});
+
+describe('backgroundHex', () => {
+  it('returns white for light and a dark hex for dark', () => {
+    expect(backgroundHex({ primary: '#2563eb', theme: 'light' })).toBe('#ffffff');
+    expect(backgroundHex({ primary: '#2563eb', theme: 'dark' })).toMatch(/^#[0-9a-f]{6}$/);
   });
 });
 
 describe('combinedSearch — merges location.search and hash query', () => {
   it('hash query takes precedence over the leading search', () => {
-    const params = combinedSearch({ search: '?primary=111111', hash: '#/g/x?primary=222222&bg=ffffff' });
+    const params = combinedSearch({ search: '?primary=111111', hash: '#/g/x?primary=222222&theme=dark' });
     expect(params.get('primary')).toBe('222222');
-    expect(params.get('bg')).toBe('ffffff');
+    expect(params.get('theme')).toBe('dark');
   });
 });

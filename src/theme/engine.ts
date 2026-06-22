@@ -6,30 +6,30 @@
  * before first paint. Keeping it free of imports keeps that inline script tiny
  * and guarantees the two execution points can never drift.
  *
- * Security: URL hex params flow into CSS here. We validate-by-shape (strict
- * allowlist regex, reject-don't-strip) and only ever write self-computed numeric
- * "H S% L%" strings via CSSOM setProperty. The raw param string is never echoed.
+ * Contract (what the native app puts in the URL): just two params.
+ *   ?primary=<hex>&theme=light|hybrid|dark
+ * Everything else (accent, background, text, and the full token set) is derived
+ * from the primary color and the chosen theme. There is no separate secondary.
+ *
+ * Security: the URL hex flows into CSS here. We validate-by-shape (strict allowlist
+ * regex, reject-don't-strip) and only ever write self-computed numeric "H S% L%"
+ * strings via CSSOM setProperty. The raw param string is never echoed.
  */
 
-export type ThemeMode = 'light' | 'dark';
+export type ThemeName = 'light' | 'hybrid' | 'dark';
 
 export interface ThemeInputs {
   primary: string; // #rrggbb
-  accent: string;
-  bg: string;
-  text: string;
-  mode: ThemeMode;
+  theme: ThemeName;
 }
 
 /** The query-string keys the native app codes against. Locked contract. */
-export const THEME_PARAM_KEYS = ['primary', 'accent', 'bg', 'text', 'mode'] as const;
+export const THEME_PARAM_KEYS = ['primary', 'theme'] as const;
+export const THEME_NAMES: ThemeName[] = ['light', 'hybrid', 'dark'];
 
 export const DEFAULT_THEME_INPUTS: ThemeInputs = {
   primary: '#2563eb',
-  accent: '#f59e0b',
-  bg: '#ffffff',
-  text: '#111827',
-  mode: 'light',
+  theme: 'light',
 };
 
 /** Full shadcn/ui token set we emit. Every one must be present or components render unstyled. */
@@ -75,8 +75,8 @@ export function parseHex(raw: string | null | undefined): string | null {
   return '#' + h.toLowerCase();
 }
 
-function parseMode(raw: string | null | undefined): ThemeMode | null {
-  return raw === 'light' || raw === 'dark' ? raw : null;
+function parseTheme(raw: string | null | undefined): ThemeName | null {
+  return raw === 'light' || raw === 'hybrid' || raw === 'dark' ? raw : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -101,6 +101,13 @@ function hexToRgb(hex: string): Rgb {
     g: parseInt(h.slice(2, 4), 16),
     b: parseInt(h.slice(4, 6), 16),
   };
+}
+
+function toHex2(n: number): string {
+  return Math.round(clamp(n, 0, 255)).toString(16).padStart(2, '0');
+}
+function rgbToHex({ r, g, b }: Rgb): string {
+  return '#' + toHex2(r) + toHex2(g) + toHex2(b);
 }
 
 function clamp(n: number, lo: number, hi: number): number {
@@ -171,7 +178,6 @@ function readableForeground(bg: Rgb): Rgb {
 function ensureContrast(color: Rgb, fg: Rgb, target = 4.5): Rgb {
   if (contrastRatio(color, fg) >= target) return color;
   const hsl = rgbToHsl(color);
-  // Move away from the foreground: if fg is light, darken; if dark, lighten.
   const fgIsLight = relativeLuminance(fg) > 0.5;
   const step = fgIsLight ? -2 : 2;
   let best = color;
@@ -204,16 +210,76 @@ function hslToRgb({ h, s, l }: Hsl): Rgb {
 }
 
 // ---------------------------------------------------------------------------
+// expand: primary + theme -> the working colors
+// ---------------------------------------------------------------------------
+
+interface Expanded {
+  primary: Rgb;
+  accent: Rgb;
+  bg: Rgb;
+  text: Rgb;
+  dark: boolean;
+}
+
+/**
+ * Turn the two inputs into the working palette colors.
+ *  - light:  white background, dark text.
+ *  - hybrid: a soft off-white tinted with the brand primary, dark text.
+ *  - dark:   a near-black background faintly tinted with the brand primary, light text.
+ * The primary is nudged so it always reads as a button on the chosen background, and the
+ * accent is just the primary (there is no separate secondary color).
+ */
+function expand(inputs: ThemeInputs): Expanded {
+  const theme = inputs.theme;
+  const dark = theme === 'dark';
+  const raw = hexToRgb(inputs.primary);
+
+  // Make the primary pop on its background: brighten dark primaries for dark mode,
+  // darken very pale primaries for the light themes.
+  const ph = rgbToHsl(raw);
+  if (dark) {
+    ph.l = clamp(Math.max(ph.l, 58), 0, 92);
+    if (ph.s < 35) ph.s = 35;
+  } else if (ph.l > 68) {
+    ph.l = 50;
+  }
+  const primaryBase = hslToRgb(ph);
+  const primary = ensureContrast(primaryBase, readableForeground(primaryBase));
+
+  let bg: Rgb;
+  let text: Rgb;
+  if (theme === 'hybrid') {
+    const t = rgbToHsl(raw);
+    t.s = clamp(t.s, 16, 40);
+    t.l = 97;
+    bg = hslToRgb(t);
+    text = { r: 17, g: 24, b: 39 };
+  } else if (theme === 'dark') {
+    const t = rgbToHsl(raw);
+    t.s = clamp(t.s, 8, 24);
+    t.l = 7;
+    bg = hslToRgb(t);
+    text = { r: 244, g: 246, b: 250 };
+  } else {
+    bg = { r: 255, g: 255, b: 255 };
+    text = { r: 15, g: 23, b: 42 };
+  }
+
+  return { primary, accent: primary, bg, text, dark };
+}
+
+/** The background color as hex (for the native chrome / meta theme-color). */
+export function backgroundHex(inputs: ThemeInputs): string {
+  return rgbToHex(expand(inputs).bg);
+}
+
+// ---------------------------------------------------------------------------
 // palette derivation
 // ---------------------------------------------------------------------------
 
-/** Derive the full shadcn token palette from a few hex inputs. */
+/** Derive the full shadcn token palette from the primary color and theme. */
 export function buildPalette(inputs: ThemeInputs): Palette {
-  const dark = inputs.mode === 'dark';
-  const bg = hexToRgb(inputs.bg);
-  const text = hexToRgb(inputs.text);
-  const primary = ensureContrast(hexToRgb(inputs.primary), readableForeground(hexToRgb(inputs.primary)));
-  const accent = ensureContrast(hexToRgb(inputs.accent), readableForeground(hexToRgb(inputs.accent)));
+  const { primary, accent, bg, text, dark } = expand(inputs);
 
   const toward = (c: Rgb, target: Rgb, t: number) => hslString(rgbToHsl(mix(c, target, t)));
   const hover = (c: Rgb) => {
@@ -227,7 +293,7 @@ export function buildPalette(inputs: ThemeInputs): Palette {
   return {
     background: hslString(rgbToHsl(bg)),
     foreground: hslString(rgbToHsl(text)),
-    card: hslString(rgbToHsl(mix(bg, text, dark ? 0.04 : 0.0))),
+    card: hslString(rgbToHsl(mix(bg, text, dark ? 0.05 : 0.0))),
     'card-foreground': hslString(rgbToHsl(text)),
     popover: hslString(rgbToHsl(bg)),
     'popover-foreground': hslString(rgbToHsl(text)),
@@ -259,8 +325,8 @@ interface StorageLike {
 /**
  * Build ThemeInputs from URL params, with per-field fallback:
  *   valid URL param  ->  sessionStorage  ->  default.
- * Persists the resolved inputs to sessionStorage so internal navigations that
- * drop the query string still match the original theme.
+ * Persists the resolved inputs to sessionStorage so internal navigations that drop
+ * the query string still match.
  */
 export function parseThemeInputs(params: URLSearchParams, storage?: StorageLike): ThemeInputs {
   let stored: Partial<ThemeInputs> = {};
@@ -273,26 +339,15 @@ export function parseThemeInputs(params: URLSearchParams, storage?: StorageLike)
     }
   }
 
-  const pick = (key: keyof ThemeInputs): string => {
-    const fromUrl = parseHex(params.get(key));
-    if (fromUrl) return fromUrl;
-    const fromStore = typeof stored[key] === 'string' ? parseHex(stored[key] as string) : null;
-    if (fromStore) return fromStore;
-    return DEFAULT_THEME_INPUTS[key];
-  };
+  const primary =
+    parseHex(params.get('primary')) ??
+    (typeof stored.primary === 'string' ? parseHex(stored.primary) : null) ??
+    DEFAULT_THEME_INPUTS.primary;
 
-  const mode =
-    parseMode(params.get('mode')) ??
-    parseMode(stored.mode) ??
-    inferMode(parseHex(params.get('bg')) ?? (stored.bg as string) ?? DEFAULT_THEME_INPUTS.bg);
+  const theme =
+    parseTheme(params.get('theme')) ?? parseTheme(stored.theme) ?? DEFAULT_THEME_INPUTS.theme;
 
-  const inputs: ThemeInputs = {
-    primary: pick('primary'),
-    accent: pick('accent'),
-    bg: pick('bg'),
-    text: pick('text'),
-    mode,
-  };
+  const inputs: ThemeInputs = { primary, theme };
 
   if (storage) {
     try {
@@ -304,26 +359,20 @@ export function parseThemeInputs(params: URLSearchParams, storage?: StorageLike)
   return inputs;
 }
 
-/** Dark mode inferred from a dark background when no explicit mode is given. */
-function inferMode(bgHex: string): ThemeMode {
-  const norm = parseHex(bgHex);
-  if (!norm) return DEFAULT_THEME_INPUTS.mode;
-  return relativeLuminance(hexToRgb(norm)) < 0.4 ? 'dark' : 'light';
-}
-
 /** Write the palette to CSS custom properties via CSSOM. Never string-concatenated CSS. */
-export function applyPalette(palette: Palette, mode: ThemeMode, el: HTMLElement): void {
+export function applyPalette(palette: Palette, theme: ThemeName, el: HTMLElement): void {
   for (const token of COLOR_TOKENS) {
     el.style.setProperty(`--${token}`, palette[token]);
   }
-  el.setAttribute('data-theme', mode);
-  if (mode === 'dark') el.classList.add('dark');
+  el.setAttribute('data-theme', theme);
+  // Tailwind dark variants are class-based; only the dark theme toggles them.
+  if (theme === 'dark') el.classList.add('dark');
   else el.classList.remove('dark');
 }
 
 /**
  * Theme params can arrive two ways under HashRouter:
- *   - native initial deep-link:   https://host/?primary=...#/route
+ *   - native initial deep-link:    https://host/?primary=...#/route
  *   - in-app ThemedLink navigation: https://host/#/route?primary=...
  * Merge both, with the hash query taking precedence (it's the "current" nav state).
  */
@@ -344,6 +393,6 @@ export function applyThemeFromLocation(
   storage?: StorageLike,
 ): ThemeInputs {
   const inputs = parseThemeInputs(combinedSearch(loc), storage);
-  applyPalette(buildPalette(inputs), inputs.mode, el);
+  applyPalette(buildPalette(inputs), inputs.theme, el);
   return inputs;
 }

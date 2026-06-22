@@ -5,9 +5,12 @@ app's WebView. The host app opens the WebView with hex colors in the URL and the
 to match — so the same library feels native inside any branded app.
 
 ```
-https://<deployed-url>/?primary=4a9d4f&accent=6cbf4a&bg=ffffff&text=1f2937   # green host
-https://<deployed-url>/?primary=1e2d4f&accent=c9a227&bg=ffffff&text=14213d   # navy host
+https://<deployed-url>/?primary=4a9d4f&theme=light    # green host, light theme
+https://<deployed-url>/?primary=1e2d4f&theme=dark     # navy host, dark theme
 ```
+
+Theme options: `light` (white background), `hybrid` (soft brand-tinted light), `dark` (near-black
+brand-tinted). Everything else is derived from the primary color; there is no separate accent.
 
 ## Stack
 
@@ -25,9 +28,9 @@ npm run test       # vitest (theme engine + DOM theming tests)
 
 ## How it works
 
-- **URL-param theming** (`src/theme/`) — 5 params (`primary`, `accent`, `bg`, `text`, `mode`) drive
-  a full derived palette applied before first paint (no flash). Strictly validated; auto-derives
-  WCAG-readable contrast. Single source of truth shared by the inline bootstrap and React.
+- **URL-param theming** (`src/theme/`) — 2 params (`primary` + `theme`) drive a full derived palette
+  applied before first paint (no flash). Strictly validated; auto-derives accent, background, text,
+  and WCAG-readable contrast. Single source of truth shared by the inline bootstrap and React.
 - **Multi-taxonomy content** (`src/content/`) — MDX guides + podcasts organized by both the
   5-stage homebuyer journey and loan-type tracks (First-Time, VA, FHA, USDA, Investor). Add a
   lesson by dropping an `.mdx` file under `src/content/items/`.
@@ -35,7 +38,7 @@ npm run test       # vitest (theme engine + DOM theming tests)
 
 ## Theming contract for the native app
 
-Append theme params to the WebView URL. They persist across navigation, so deep links keep the
-colors: `/#/g/<id>?primary=...&bg=...`. Param names are locked — see `THEME_PARAM_KEYS`.
+Append the theme params to the WebView URL. They persist across navigation, so deep links keep the
+colors: `/#/g/<id>?primary=1e2d4f&theme=dark`. Param names are locked, see `THEME_PARAM_KEYS`.
 
 > Educational content only — not financial advice or a commitment to lend.

@@ -17,9 +17,12 @@ npm run typecheck  # tsc --noEmit
 ## The two core systems
 
 ### 1. URL-param theming (`src/theme/`)
-The native app opens the WebView with hex colors in the URL and they drive the whole theme:
-`?primary=2563eb&accent=f59e0b&bg=ffffff&text=111827&mode=light`. **These 5 param keys are a
-locked contract** the native app codes against (`THEME_PARAM_KEYS` in `engine.ts`).
+The native app opens the WebView with two params that drive the whole theme:
+`?primary=2563eb&theme=light` where `theme` is `light | hybrid | dark`. **These 2 param keys are a
+locked contract** the native app codes against (`THEME_PARAM_KEYS` in `engine.ts`). Everything else
+(accent, background, text, the full token set) is derived from the primary color and the theme;
+there is no separate secondary color. `light` = white bg, `hybrid` = soft brand-tinted light bg,
+`dark` = near-black brand-tinted bg.
 
 - `engine.ts` is the **single source of truth** — pure, dependency-free parse/validate/derive/apply.
   Used by BOTH the React `ThemeProvider` and the pre-paint inline bootstrap.

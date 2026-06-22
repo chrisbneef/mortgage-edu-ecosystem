@@ -2,6 +2,7 @@ import { createContext, useContext, useLayoutEffect, useMemo, type ReactNode } f
 import { useSearchParams } from 'react-router-dom';
 import {
   applyPalette,
+  backgroundHex,
   buildPalette,
   parseThemeInputs,
   type Palette,
@@ -32,8 +33,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // useLayoutEffect = applied before the browser paints the new route.
   useLayoutEffect(() => {
-    applyPalette(palette, inputs.mode, document.documentElement);
-    syncNativeChrome(inputs);
+    applyPalette(palette, inputs.theme, document.documentElement);
+    syncNativeChrome(backgroundHex(inputs), inputs.theme);
   }, [palette, inputs]);
 
   const value = useMemo(() => ({ inputs, palette }), [inputs, palette]);

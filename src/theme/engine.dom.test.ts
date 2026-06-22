@@ -13,7 +13,7 @@ describe('applyThemeFromLocation — DOM write path', () => {
   it('writes every color token to :root as a valid CSS custom property', () => {
     applyThemeFromLocation(
       document.documentElement,
-      { search: '?primary=2563eb&bg=ffffff&text=111827', hash: '' },
+      { search: '?primary=2563eb&theme=light', hash: '' },
       window.sessionStorage,
     );
     for (const token of COLOR_TOKENS) {
@@ -30,24 +30,31 @@ describe('applyThemeFromLocation — DOM write path', () => {
       window.sessionStorage,
     );
     const primary = document.documentElement.style.getPropertyValue('--primary');
-    expect(primary).toMatch(/^\d{1,3} \d{1,3}% \d{1,3}%$/); // numeric only — no breakout chars
+    expect(primary).toMatch(/^\d{1,3} \d{1,3}% \d{1,3}%$/);
     expect(primary).not.toContain(';');
     expect(primary).not.toContain('}');
-    // The full inline style string contains no injected selectors.
     expect(document.documentElement.getAttribute('style') ?? '').not.toContain('display');
   });
 
-  it('sets the dark class when a dark background is supplied', () => {
-    applyThemeFromLocation(document.documentElement, { search: '?bg=0a0a0a', hash: '' }, window.sessionStorage);
+  it('adds the dark class for theme=dark and removes it for the light themes', () => {
+    applyThemeFromLocation(document.documentElement, { search: '?theme=dark', hash: '' }, window.sessionStorage);
     expect(document.documentElement.classList.contains('dark')).toBe(true);
+
+    applyThemeFromLocation(document.documentElement, { search: '?theme=hybrid', hash: '' }, window.sessionStorage);
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('hybrid');
   });
 
-  it('recovers theme from sessionStorage when params drop on a later page', () => {
-    // First load carries the params (e.g. native deep-link).
-    applyThemeFromLocation(document.documentElement, { search: '?primary=10b981', hash: '' }, window.sessionStorage);
+  it('recovers theme + primary from sessionStorage when params drop on a later page', () => {
+    applyThemeFromLocation(
+      document.documentElement,
+      { search: '?primary=10b981&theme=dark', hash: '' },
+      window.sessionStorage,
+    );
     const first = document.documentElement.style.getPropertyValue('--primary');
     // Second navigation has no params at all — must still match.
     applyThemeFromLocation(document.documentElement, { search: '', hash: '#/glossary' }, window.sessionStorage);
     expect(document.documentElement.style.getPropertyValue('--primary')).toBe(first);
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 });

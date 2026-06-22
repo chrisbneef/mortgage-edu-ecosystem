@@ -3,8 +3,6 @@
  * Android, and React Native channels; no-ops in a plain browser. Used for analytics,
  * audio events, and syncing native chrome (status bar color) to the theme.
  */
-import type { ThemeInputs } from '@/theme/engine';
-
 type NativeEvent =
   | { type: 'ready' }
   | { type: 'navigate'; path: string }
@@ -39,12 +37,12 @@ export function postToNative(event: NativeEvent): void {
 }
 
 /** Keep the native status bar / browser chrome in sync with the themed background. */
-export function syncNativeChrome(inputs: ThemeInputs): void {
+export function syncNativeChrome(bgHex: string, theme: string): void {
   if (typeof document !== 'undefined') {
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', inputs.bg);
+    if (meta) meta.setAttribute('content', bgHex);
   }
-  postToNative({ type: 'theme', bg: inputs.bg, mode: inputs.mode });
+  postToNative({ type: 'theme', bg: bgHex, mode: theme });
 }
 
 export function trackEvent(name: string, props?: Record<string, unknown>): void {
