@@ -6,6 +6,7 @@ import { useScope } from '@/lib/scope';
 import { MdxContent } from '@/components/mdx';
 import { AudioControls } from '@/components/audio/AudioPlayer';
 import { getById, neighbours } from '@/content/registry';
+import { disclaimerFor } from '@/content/disclaimers';
 import { journeyLabel, trackLabel, phaseLabel, nicheLabel } from '@/content/taxonomies';
 import { formatMinutes } from '@/lib/utils';
 import { trackEvent } from '@/native/bridge';
@@ -104,11 +105,9 @@ export function ContentDetailPage() {
         </Suspense>
       </div>
 
-      {entry.disclaimer && (
-        <p className="rounded-xl bg-muted px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-          {entry.disclaimer}
-        </p>
-      )}
+      <p className="rounded-xl bg-muted px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+        {disclaimerFor(entry)}
+      </p>
 
       {entry.tracks.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
