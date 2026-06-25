@@ -78,6 +78,13 @@ export function byType(contentType: 'guide' | 'podcast'): ContentEntry[] {
   return published().filter((e) => e.contentType === contentType);
 }
 
+/** Every published lesson that has a playable audio overview (powers the Podcasts tab). */
+export function withAudio(): ContentEntry[] {
+  return published()
+    .filter((e) => e.audio?.src)
+    .sort((a, b) => a.journeyOrder - b.journeyOrder);
+}
+
 /** Fallback mapping when a lesson has no explicit `phases` — derived from its category. */
 const JOURNEY_TO_PHASES: Record<string, PhaseSlug[]> = {
   preparation: ['dream', 'pre-approved'],

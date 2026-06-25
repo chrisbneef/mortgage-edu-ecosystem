@@ -1,29 +1,52 @@
 import { MDXProvider } from '@mdx-js/react';
-import { Info, AlertTriangle, Lightbulb } from 'lucide-react';
+import { Info, AlertTriangle, Lightbulb, KeyRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ThemedLink } from '@/lib/navigation';
 import { getTerm } from '@/content/glossary';
 import { cn } from '@/lib/utils';
 
-/** Highlighted callout box used inside guides. */
+/** Highlighted callout box ("lightbulb section") used inside guides. */
 export function Callout({
   type = 'info',
+  title,
   children,
 }: {
-  type?: 'info' | 'warning' | 'tip';
+  type?: 'info' | 'warning' | 'tip' | 'key';
+  title?: string;
   children: ReactNode;
 }) {
   const cfg = {
     info: { Icon: Info, cls: 'border-primary/30 bg-primary/5' },
     warning: { Icon: AlertTriangle, cls: 'border-destructive/30 bg-destructive/5' },
     tip: { Icon: Lightbulb, cls: 'border-accent/40 bg-accent/10' },
+    key: { Icon: KeyRound, cls: 'border-primary/40 bg-primary/10' },
   }[type];
   return (
-    <div className={cn('my-4 flex gap-3 rounded-lg border p-4 text-sm', cfg.cls)}>
-      <cfg.Icon className="mt-0.5 size-5 shrink-0 text-foreground/70" />
-      <div className="[&>p]:m-0 [&>p+p]:mt-2">{children}</div>
+    <div className={cn('my-5 flex gap-3 rounded-xl border p-4 text-sm shadow-card', cfg.cls)}>
+      <cfg.Icon className="mt-0.5 size-5 shrink-0 text-primary" />
+      <div className="[&>p]:m-0 [&>p+p]:mt-2">
+        {title && <p className="mb-1 font-display font-semibold text-foreground">{title}</p>}
+        {children}
+      </div>
     </div>
   );
+}
+
+/** A single highlighted statistic. Use one for a standout number, or several inside <Stats>. */
+export function Stat({ value, label }: { value: ReactNode; label: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center shadow-card">
+      <div className="font-display text-[1.75rem] font-bold leading-none tabular-nums text-primary">
+        {value}
+      </div>
+      <div className="mt-1.5 text-xs leading-snug text-muted-foreground">{label}</div>
+    </div>
+  );
+}
+
+/** Responsive grid wrapper for a row of <Stat> cards. */
+export function Stats({ children }: { children: ReactNode }) {
+  return <div className="my-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{children}</div>;
 }
 
 /** Compliance disclaimer rendered in a muted, clearly-marked block. */
@@ -51,6 +74,8 @@ export function GlossaryTerm({ slug, children }: { slug: string; children: React
 
 const mdxComponents = {
   Callout,
+  Stat,
+  Stats,
   Disclaimer,
   GlossaryTerm,
   h1: (p: React.HTMLAttributes<HTMLHeadingElement>) => (

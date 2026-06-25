@@ -14,6 +14,7 @@ import type { Plugin } from 'vite';
  * never processes it.
  */
 const PREFIX = '\0mdx-meta:';
+const idFor = (absMdx: string) => PREFIX + absMdx.replace(/\.mdx$/, '');
 
 export function mdxMeta(): Plugin {
   return {
@@ -26,13 +27,23 @@ export function mdxMeta(): Plugin {
       const absMdx = resolved?.id.split('?')[0];
       if (!absMdx) return null;
       // Strip the .mdx extension from the visible id so no extension-based plugin matches it.
-      return PREFIX + absMdx.replace(/\.mdx$/, '');
+      return idFor(absMdx);
     },
     load(id) {
       if (!id.startsWith(PREFIX)) return null;
       const file = id.slice(PREFIX.length) + '.mdx';
+      // Track the real file so a frontmatter edit invalidates this virtual module in dev.
+      this.addWatchFile(file);
       const { data } = matter(fs.readFileSync(file, 'utf-8'));
       return `export default ${JSON.stringify(data)};`;
+    },
+    handleHotUpdate({ file, server, modules }) {
+      if (!file.endsWith('.mdx')) return;
+      const mod = server.moduleGraph.getModuleById(idFor(file));
+      if (mod) {
+        server.moduleGraph.invalidateModule(mod);
+        return [...modules, mod];
+      }
     },
   };
 }

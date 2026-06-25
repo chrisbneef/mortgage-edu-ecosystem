@@ -1,0 +1,23 @@
+{
+  "credit-health": {
+    "url": "https://umnhgmfxtpsm3kfa.public.blob.vercel-storage.com/audio/credit-health-c5ad247c.mp3",
+    "durationSec": 178,
+    "lines": 31,
+    "bytes": 2138156,
+    "at": "2026-06-22T22:11:41.304Z"
+  },
+  "how-much-house-can-you-afford": {
+    "url": "https://umnhgmfxtpsm3kfa.public.blob.vercel-storage.com/audio/how-much-house-can-you-afford-62278a1c.mp3",
+    "durationSec": 159,
+    "lines": 26,
+    "bytes": 1906892,
+    "at": "2026-06-22T22:15:20.978Z"
+  },
+  "down-payment-myth": {
+    "url": "https://umnhgmfxtpsm3kfa.public.blob.vercel-storage.com/audio/down-payment-myth-523dcee5.mp3",
+    "durationSec": 192,
+    "lines": 27,
+    "bytes": 2307212,
+    "at": "2026-06-22T23:40:50.646Z"
+  }
+}

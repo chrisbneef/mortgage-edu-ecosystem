@@ -21,8 +21,9 @@ export const ContentFrontmatterSchema = z.object({
   // Borrower-audience niches this lesson serves (powers the standalone niche widgets).
   niches: z.array(z.enum(NICHE_SLUGS as [string, ...string[]])).default([]),
 
-  tags: z.array(z.string()).default([]),
-  glossaryTerms: z.array(z.string()).default([]),
+  // coerce so a bare-number tag in YAML (e.g. `1099`, which parses as a number) stays a string
+  tags: z.array(z.coerce.string()).default([]),
+  glossaryTerms: z.array(z.coerce.string()).default([]),
 
   audio: z
     .object({

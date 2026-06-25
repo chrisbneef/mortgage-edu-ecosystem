@@ -24,7 +24,17 @@ export function ContentCard({ entry, from }: { entry: ContentEntry; from?: strin
           <Icon className="size-3.5" strokeWidth={2} />
           {isPodcast ? 'Podcast' : 'Guide'}
         </span>
-        <ArrowUpRight className="size-4 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
+        <div className="flex items-center gap-2">
+          {entry.audio?.src && !isPodcast && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] font-medium text-primary"
+              title="Audio overview available"
+            >
+              <Headphones className="size-3" /> Listen
+            </span>
+          )}
+          <ArrowUpRight className="size-4 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
+        </div>
       </div>
 
       <h3 className="mt-2 font-display text-lg font-semibold leading-snug">{entry.title}</h3>

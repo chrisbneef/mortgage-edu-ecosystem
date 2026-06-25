@@ -10,3 +10,9 @@ coverage
 # design reference mockups (not app code)
 *.PNG
 *.png
+
+# secrets (Gemini + Vercel Blob keys)
+.env
+
+# reference audio (not app code)
+*.m4a
